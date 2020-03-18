@@ -1,7 +1,6 @@
 package search
 
 import (
-	"fmt"
 	"github.com/MintegralTech/juno/check"
 	"github.com/MintegralTech/juno/document"
 	"github.com/MintegralTech/juno/index"
@@ -83,7 +82,6 @@ func Replay(idx index.Index, info *marshal.MarshalInfo, ids []document.DocId) ma
 			marshalInfo.IndexValue = idx.GetIndexDebugInfoById(id).StorageIndex[marshalInfo.Name]
 		default:
 			if marshalInfo.Operation != "" {
-				fmt.Println(marshalInfo)
 				c := uq.UnmarshalV2(idx, marshalInfo).(check.Checker)
 				marshalInfo.Result = c.Check(innerId)
 				marshalInfo.IndexValue = idx.GetIndexDebugInfoById(id).StorageIndex[marshalInfo.Name]

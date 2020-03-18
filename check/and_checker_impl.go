@@ -55,7 +55,7 @@ func (a *AndChecker) MarshalV2() *marshal.MarshalInfo {
 		return nil
 	}
 	info := &marshal.MarshalInfo{
-		Operation: "or",
+		Operation: "and_check",
 		Nodes:     make([]*marshal.MarshalInfo, 0),
 	}
 	for _, v := range a.c {
