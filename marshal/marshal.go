@@ -11,6 +11,6 @@ type MarshalInfo struct {
 	Transfer      bool           `json:"transfer,omitempty"`
 	SelfOperation bool           `json:"self_operation,omitempty"`
 	Label         string         `json:"label,omitempty"`
-	Result        bool           `json:"result,omitempty"`
+	Result        bool           `json:"result"`
 	Nodes         []*MarshalInfo `json:"nodes,omitempty"`
 }
