@@ -246,7 +246,8 @@ func TestSearcher(t *testing.T) {
 			}),
 		})
 
-		se := Search(ss, q)
+		se := NewSearcher()
+		se.Search(ss, q)
 		testCase := []document.DocId{10, 30, 40, 60}
 		for i, expect := range testCase {
 			So(se.Docs[i], ShouldEqual, expect)
@@ -260,8 +261,8 @@ func TestSearcher(t *testing.T) {
 
 		q.SetLabel("test label q")
 		q1.SetLabel("test label q1")
-		a := Replay(ss, q.MarshalV2(), []document.DocId{1, 10})
-		res, _ = json.Marshal(a)
+		se.Debug(ss, q.Marshal(), []document.DocId{1, 10})
+		res, _ = json.Marshal(se.FilterInfo)
 		fmt.Println(string(res))
 
 		res, _ = json.Marshal(q.MarshalV2())
@@ -339,10 +340,11 @@ func TestNewSearcher_Inc_Index(t *testing.T) {
 				"field1": []string{"1"},
 			},
 		}
-		realMap := idx.GetIndexDebugInfoById(0)
+		realMap := idx.GetValueById(0)
 		So(reflect.DeepEqual(realMap, expectMap), ShouldBeTrue)
 
-		s1 := Search(idx, q)
+		s1 := NewSearcher()
+		s1.Search(idx, q)
 		So(s1.Docs[0], ShouldEqual, 0)
 
 		idx.Del(doc5)
@@ -355,12 +357,12 @@ func TestNewSearcher_Inc_Index(t *testing.T) {
 				"field1": []string{"10"},
 			},
 		}
-		realMap = idx.GetIndexDebugInfoById(0)
+		realMap = idx.GetValueById(0)
 		So(realMap, ShouldNotBeNil)
 		So(reflect.DeepEqual(realMap, expectMap), ShouldBeTrue)
 
 		q = query.NewTermQuery(idx.GetInvertedIndex().Iterator("field2", "20"))
-		s1 = Search(idx, q)
+		s1.Search(idx, q)
 		So(s1.Docs[0], ShouldEqual, 0)
 	})
 
@@ -427,7 +429,8 @@ func TestIndexV2(t *testing.T) {
 		q := query.NewAndQuery([]query.Query{
 			query.NewTermQuery(idx1.GetInvertedIndex().Iterator("fieldName", "3")),
 		}, nil)
-		s := Search(idx1, q)
+		s := NewSearcher()
+		s.Search(idx1, q)
 		So(len(s.Docs), ShouldEqual, 1)
 		So(s.Docs[0], ShouldEqual, 30)
 
@@ -437,7 +440,8 @@ func TestIndexV2(t *testing.T) {
 			q := query.NewAndQuery([]query.Query{
 				query.NewTermQuery(idx1.GetInvertedIndex().Iterator("fieldName", "3")),
 			}, nil)
-			s = Search(idx2, q)
+			s = NewSearcher()
+			s.Search(idx2, q)
 			So(len(s.Docs), ShouldEqual, 1)
 			So(s.Docs[0], ShouldEqual, 30)
 		})
@@ -446,11 +450,11 @@ func TestIndexV2(t *testing.T) {
 			q := query.NewAndQuery([]query.Query{
 				query.NewTermQuery(idx1.GetInvertedIndex().Iterator("fieldName", "3")),
 			}, nil)
-			filter := Replay(idx1, q.MarshalV2(), []document.DocId{30})
-			fmt.Println(filter)
+			s.Debug(idx1, q.Marshal(), []document.DocId{30})
+			fmt.Println(s.FilterInfo)
 			fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxx")
 			fmt.Println(q.Marshal())
-			fmt.Println("111111111111111111", idx1.GetIndexDebugInfoById(0))
+			fmt.Println("111111111111111111", idx1.GetValueById(0))
 		})
 
 	})

@@ -20,9 +20,9 @@ func TestNewIndexV2(t *testing.T) {
 		So(index.Add(doc2), ShouldBeNil)
 		So(index.Add(doc3), ShouldBeNil)
 
-		So(index.GetIndexDebugInfoById(2), ShouldNotBeNil)
+		So(index.GetValueById(2), ShouldNotBeNil)
 		if1 := index.GetInvertedIndex().Iterator("field1", "1")
-		So(index.GetIndexDebugInfoById(1), ShouldNotBeNil)
+		So(index.GetValueById(1), ShouldNotBeNil)
 		c := 0
 		for if1.HasNext() {
 			if if1.Current() != nil {
@@ -123,7 +123,7 @@ func TestMergeIndexV2(t *testing.T) {
 		So(idx.GetInvertedIndex().Count(), ShouldEqual, 2)
 		So(idx.GetStorageIndex().Count(), ShouldEqual, 2)
 		Convey("GetValueById add", func() {
-			realMap := idx.GetIndexDebugInfoById(0)
+			realMap := idx.GetValueById(0)
 			//expectMap := [2]map[string][]string{
 			//	{
 			//		"field1": []string{"1"},
@@ -146,7 +146,7 @@ func TestMergeIndexV2(t *testing.T) {
 		So(idx2.Add(doc3), ShouldBeNil)
 
 		Convey("GetValueById del & add", func() {
-			realMap := idx2.GetIndexDebugInfoById(0)
+			realMap := idx2.GetValueById(0)
 			//expectMap := &IndexDebugInfo{
 			//	map[string][]string{
 			//		"field2": []string{"20", "200"},
@@ -161,7 +161,7 @@ func TestMergeIndexV2(t *testing.T) {
 
 		idx2.MergeIndex(idx)
 		Convey("GetValueById merge", func() {
-			realMap := idx2.GetIndexDebugInfoById(0)
+			realMap := idx2.GetValueById(0)
 			//expectMap := &IndexDebugInfo{
 			//	map[string][]string{
 			//		"field2": []string{"20", "200"},

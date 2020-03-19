@@ -21,7 +21,7 @@ func NewStorageIndexerV2() *StorageIndexer {
 	}
 }
 
-func (s *StorageIndexerV2) GetStorageIndexDebugInfoById(id document.DocId) map[string][]string {
+func (s *StorageIndexerV2) GetValueById(id document.DocId) map[string][]string {
 	var res = make(map[string][]string, 16)
 	s.data.Range(func(key, value interface{}) bool {
 		v, ok := value.(*datastruct.Slice)

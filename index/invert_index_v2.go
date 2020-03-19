@@ -34,7 +34,7 @@ func (i *InvertedIndexerV2) Range(f func(key, value interface{}) bool) {
 	i.data.Range(f)
 }
 
-func (i *InvertedIndexerV2) GetInvertIndexDebugInfoById(id document.DocId) map[string][]string {
+func (i *InvertedIndexerV2) GetValueById(id document.DocId) map[string][]string {
 	var res = make(map[string][]string, 16)
 	i.data.Range(func(key, value interface{}) bool {
 		v, ok := value.(*datastruct.Slice)

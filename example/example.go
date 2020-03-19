@@ -17,7 +17,7 @@ func main() {
 			{Name: "field2", IndexType: document.InvertedIndexType, Value: "abc", ValueType: document.StringFieldType},
 		},
 	})
-
-	s := search.Search(idx, query.NewTermQuery(idx.GetInvertedIndex().Iterator("field1", "1")))
+	s := search.NewSearcher()
+	s.Search(idx, query.NewTermQuery(idx.GetInvertedIndex().Iterator("field1", "1")))
 	fmt.Println(s.Docs)
 }

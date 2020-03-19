@@ -36,7 +36,7 @@ type Index interface {
 	Load(filename string) error
 
 	GetIndexInfo() *IndexInfo
-	GetIndexDebugInfoById(id document.DocId) *IndexDebugInfo
+	GetValueById(id document.DocId) *IndexDebugInfo
 	DebugInfo() *debug.Debug
 }
 
