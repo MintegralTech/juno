@@ -16,6 +16,8 @@ type IndexDebugInfo struct {
 	StorageIndex map[string][]string
 }
 
+const SEP = "\007"
+
 type Index interface {
 	Add(docInfo *document.DocInfo) error
 	UpdateIds(fieldName string, ids []document.DocId)

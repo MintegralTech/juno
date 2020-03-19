@@ -31,7 +31,7 @@ func NewNotChecker(si datastruct.Iterator, value interface{}, e operation.Operat
 
 func (nc *NotChecker) DebugInfo() *debug.Debug {
 	if nc.aDebug != nil {
-		nc.aDebug.FieldName = nc.si.(*datastruct.SkipListIterator).FieldName
+		nc.aDebug.FieldName = nc.si.GetFieldName()
 		return nc.aDebug
 	}
 	return nil
@@ -121,7 +121,7 @@ func (nc *NotChecker) MarshalV2() *marshal.MarshalInfo {
 		return nil
 	}
 	info := &marshal.MarshalInfo{
-		Name:       nc.si.(*datastruct.SkipListIterator).FieldName,
+		Name:       nc.si.GetFieldName(),
 		QueryValue: nc.value,
 		Operation:  "not_check",
 		Transfer:   nc.transfer,

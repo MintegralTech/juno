@@ -118,6 +118,90 @@ func TestNewNotAndQuery_GetGE(t *testing.T) {
 	})
 }
 
+func TestNotAndQuery_Slice(t *testing.T) {
+	sl := datastruct.NewSlice()
+
+	sl.Add(document.DocId(1), 1)
+	sl.Add(document.DocId(3), 1)
+	sl.Add(document.DocId(6), 2)
+	sl.Add(document.DocId(10), 2)
+
+	sl1 := datastruct.NewSlice()
+
+	sl1.Add(document.DocId(1), 1)
+	sl1.Add(document.DocId(4), 1)
+	sl1.Add(document.DocId(6), 2)
+	sl1.Add(document.DocId(9), 2)
+
+	sl2 := datastruct.NewSlice()
+
+	sl2.Add(document.DocId(1), 1)
+	sl2.Add(document.DocId(4), 1)
+	sl2.Add(document.DocId(6), 2)
+	sl2.Add(document.DocId(9), 2)
+
+	Convey("not and query slice check", t, func() {
+		a := NewNotAndQuery([]Query{
+			NewTermQuery(sl.Iterator()),
+			NewTermQuery(sl1.Iterator()),
+		}, []check.Checker{
+			check.NewChecker(sl2.Iterator(), 2, operation.EQ, nil, false),
+		})
+		v, e := a.Current()
+		a.Next()
+		So(v, ShouldEqual, 0)
+		So(e, ShouldNotBeNil)
+	})
+
+	Convey("not and query slice in check", t, func() {
+		a := NewNotAndQuery([]Query{
+			NewTermQuery(sl.Iterator()),
+			NewTermQuery(sl1.Iterator()),
+		}, []check.Checker{
+			check.NewInChecker(sl2.Iterator(), []int{1, 2, 3}, nil, false),
+		})
+		v, e := a.Current()
+		a.Next()
+		So(v, ShouldEqual, 0)
+		So(e, ShouldNotBeNil)
+	})
+
+	Convey("not and query slice or check", t, func() {
+		a := NewNotAndQuery([]Query{
+			NewTermQuery(sl.Iterator()),
+			NewTermQuery(sl1.Iterator()),
+		}, []check.Checker{
+			check.NewOrChecker([]check.Checker{
+				check.NewInChecker(sl2.Iterator(), []int{1, 2, 3}, nil, false),
+				check.NewChecker(sl2.Iterator(), 2, operation.EQ, nil, false),
+			}),
+			check.NewInChecker(sl2.Iterator(), []int{1, 2, 3}, nil, false),
+		})
+
+		v, e := a.Current()
+		a.Next()
+		So(v, ShouldEqual, 0)
+		So(e, ShouldNotBeNil)
+	})
+
+	Convey("not and query slice not and check", t, func() {
+		a := NewNotAndQuery([]Query{
+			NewTermQuery(sl.Iterator()),
+			NewTermQuery(sl1.Iterator()),
+		}, []check.Checker{
+			check.NewNotAndChecker([]check.Checker{
+				check.NewInChecker(sl2.Iterator(), []int{1, 2, 3}, nil, false),
+				check.NewChecker(sl2.Iterator(), 2, operation.EQ, nil, false),
+			}),
+			check.NewInChecker(sl2.Iterator(), []int{1, 2, 3}, nil, false),
+		})
+		v, e := a.Current()
+		a.Next()
+		So(v, ShouldEqual, 0)
+		So(e, ShouldNotBeNil)
+	})
+}
+
 func TestNewAndQuery_Check(t *testing.T) {
 	sl := datastruct.NewSkipList(datastruct.DefaultMaxLevel)
 

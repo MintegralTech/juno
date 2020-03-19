@@ -31,7 +31,7 @@ func NewInChecker(si datastruct.Iterator, value interface{}, e operation.Operati
 
 func (i *InChecker) DebugInfo() *debug.Debug {
 	if i.aDebug != nil {
-		i.aDebug.FieldName = i.si.(*datastruct.SkipListIterator).FieldName
+		i.aDebug.FieldName = i.si.GetFieldName()
 		return i.aDebug
 	}
 	return nil
@@ -119,7 +119,7 @@ func (i *InChecker) MarshalV2() *marshal.MarshalInfo {
 		return nil
 	}
 	info := &marshal.MarshalInfo{
-		Name:       i.si.(*datastruct.SkipListIterator).FieldName,
+		Name:       i.si.GetFieldName(),
 		QueryValue: i.value,
 		Operation:  "in_check",
 		Transfer:   i.transfer,

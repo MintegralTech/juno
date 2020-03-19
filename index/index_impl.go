@@ -14,7 +14,6 @@ import (
 	"sync/atomic"
 )
 
-const SEP = "\007"
 
 type Indexer struct {
 	invertedIndex   InvertedIndex
@@ -30,7 +29,7 @@ type Indexer struct {
 
 func NewIndexImpl(name string) Index {
 	return &Indexer{
-		invertedIndex:   NewInvertedIndexer(),
+		invertedIndex:   NewInvertedIndexV2(),
 		storageIndex:    NewStorageIndexer(),
 		campaignMapping: concurrent_map.CreateConcurrentMap(128),
 		kvType:          concurrent_map.CreateConcurrentMap(128),

@@ -29,7 +29,7 @@ func (s *SliceIterator) Current() *Element {
 }
 
 func (s *SliceIterator) GetGE(id document.DocId) *Element {
-	idx := binarySearch1(s.data, id)
+	idx := binarySearchGE(s.data, id)
 	if idx == -1 {
 		*s.data = (*s.data)[0:0]
 		s.index = s.data.Len()
@@ -45,7 +45,11 @@ func (s *SliceIterator) GetGE(id document.DocId) *Element {
 	}
 }
 
-func binarySearch1(data *Slice, id document.DocId) int {
+func (s *SliceIterator) GetFieldName() string {
+	return s.FieldName
+}
+
+func binarySearchGE(data *Slice, id document.DocId) int {
 	left, right, mid := 0, data.Len()-1, 0
 	if data.Len() == 0 {
 		return -1

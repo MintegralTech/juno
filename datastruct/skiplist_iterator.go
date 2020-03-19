@@ -74,3 +74,7 @@ func (si *SkipListIterator) GetGE(key document.DocId) *Element {
 func (si *SkipListIterator) Current() *Element {
 	return si.Element
 }
+
+func (si *SkipListIterator) GetFieldName() string {
+	return si.FieldName
+}

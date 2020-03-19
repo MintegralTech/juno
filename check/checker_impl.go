@@ -33,7 +33,7 @@ func NewChecker(si datastruct.Iterator, value interface{}, op operation.OP, e op
 
 func (c *CheckerImpl) DebugInfo() *debug.Debug {
 	if c.aDebug != nil {
-		c.aDebug.FieldName = c.si.(*datastruct.SkipListIterator).FieldName
+		c.aDebug.FieldName = c.si.GetFieldName()
 		return c.aDebug
 	}
 	return nil
@@ -105,9 +105,9 @@ func (c *CheckerImpl) MarshalV2() *marshal.MarshalInfo {
 		return nil
 	}
 	info := &marshal.MarshalInfo{
-		Name:       c.si.(*datastruct.SkipListIterator).FieldName,
+		Name:       c.si.GetFieldName(),
 		QueryValue: c.value,
-		Operation:  OpMap[c.op]+"_check",
+		Operation:  OpMap[c.op] + "_check",
 		Op:         c.op,
 		Transfer:   c.transfer,
 		Nodes:      nil,

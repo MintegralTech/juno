@@ -33,8 +33,8 @@ type IndexerV2 struct {
 
 func NewIndexV2(name string) (i *IndexerV2) {
 	i = &IndexerV2{
-		invertedIndex:   NewInvertedIndexer(),
-		storageIndex:    NewStorageIndexer(),
+		invertedIndex:   NewInvertedIndexV2(),
+		storageIndex:    NewStorageIndexerV2(),
 		campaignMapping: concurrent_map.CreateConcurrentMap(128),
 		kvType:          concurrent_map.CreateConcurrentMap(128),
 		idMap:           make([]document.DocId, MaxNumIndex),
