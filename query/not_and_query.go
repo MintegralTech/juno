@@ -6,6 +6,7 @@ import (
 	"github.com/MintegralTech/juno/document"
 	"github.com/MintegralTech/juno/helpers"
 	"github.com/MintegralTech/juno/index"
+	"github.com/MintegralTech/juno/marshal"
 )
 
 type NotAndQuery struct {
@@ -13,6 +14,7 @@ type NotAndQuery struct {
 	subQuery Query
 	checkers []check.Checker
 	curIdx   int
+	label    string
 	debugs   *debug.Debug
 }
 
@@ -31,6 +33,12 @@ func NewNotAndQuery(queries []Query, checkers []check.Checker) (naq *NotAndQuery
 	}
 	naq.next()
 	return naq
+}
+
+func (naq *NotAndQuery) SetLabel(label string) {
+	if naq != nil {
+		naq.label = label
+	}
 }
 
 func (naq *NotAndQuery) next() {
@@ -121,7 +129,9 @@ func (naq *NotAndQuery) Marshal() map[string]interface{} {
 	res := make(map[string]interface{}, 2)
 	queryInfo = append(queryInfo, naq.q.Marshal())
 	queryInfo = append(queryInfo, naq.subQuery.Marshal())
-
+	if naq.label != "" {
+		queryInfo = append(queryInfo, map[string]interface{}{"label": naq.label})
+	}
 	if len(naq.checkers) != 0 {
 		for _, v := range naq.checkers {
 			checkInfo = append(checkInfo, v.Marshal())
@@ -130,6 +140,49 @@ func (naq *NotAndQuery) Marshal() map[string]interface{} {
 	}
 	res["not"] = queryInfo
 	return res
+}
+
+func (naq *NotAndQuery) MarshalV2() *marshal.MarshalInfo {
+	if naq == nil {
+		return nil
+	}
+	info := &marshal.MarshalInfo{
+		Operation: "not",
+		Nodes:     make([]*marshal.MarshalInfo, 0),
+	}
+	if naq.label != "" {
+		info.Label = naq.label
+	}
+	info.Nodes = append(info.Nodes, naq.q.MarshalV2())
+	info.Nodes = append(info.Nodes, naq.subQuery.MarshalV2())
+
+	for _, v := range naq.checkers {
+		m := v.MarshalV2()
+		if m != nil {
+			info.Nodes = append(info.Nodes, v.MarshalV2())
+		}
+	}
+	return info
+}
+
+func (naq *NotAndQuery) UnmarshalV2(idx index.Index, marshalInfo *marshal.MarshalInfo) Query {
+	if marshalInfo == nil || marshalInfo.Operation != "not" {
+		return nil
+	}
+	var q []Query
+	var c []check.Checker
+	uq := &UnmarshalV2{}
+	for _, v := range marshalInfo.Nodes {
+		m := uq.UnmarshalV2(idx, v)
+		if m != nil {
+			if res, ok := m.(Query); ok {
+				q = append(q, res)
+			} else if res, ok := m.(check.Checker); ok {
+				c = append(c, res)
+			}
+		}
+	}
+	return NewNotAndQuery(q, c)
 }
 
 func (naq *NotAndQuery) Unmarshal(idx index.Index, res map[string]interface{}) Query {

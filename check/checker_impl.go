@@ -7,6 +7,7 @@ import (
 	"github.com/MintegralTech/juno/document"
 	"github.com/MintegralTech/juno/helpers"
 	"github.com/MintegralTech/juno/index"
+	"github.com/MintegralTech/juno/marshal"
 	"github.com/MintegralTech/juno/operation"
 	"github.com/MintegralTech/juno/register"
 )
@@ -32,7 +33,7 @@ func NewChecker(si datastruct.Iterator, value interface{}, op operation.OP, e op
 
 func (c *CheckerImpl) DebugInfo() *debug.Debug {
 	if c.aDebug != nil {
-		c.aDebug.FieldName = c.si.(*datastruct.SkipListIterator).FieldName
+		c.aDebug.FieldName = c.si.GetFieldName()
 		return c.aDebug
 	}
 	return nil
@@ -97,6 +98,38 @@ func (c *CheckerImpl) Marshal() map[string]interface{} {
 	tmp = append(tmp, OpMap[c.op])
 	res["check"] = tmp
 	return res
+}
+
+func (c *CheckerImpl) MarshalV2() *marshal.MarshalInfo {
+	if c == nil {
+		return nil
+	}
+	info := &marshal.MarshalInfo{
+		Name:       c.si.GetFieldName(),
+		QueryValue: c.value,
+		Operation:  OpMap[c.op] + "_check",
+		Op:         c.op,
+		Transfer:   c.transfer,
+		Nodes:      nil,
+	}
+	if c.e != nil {
+		info.SelfOperation = true
+	} else {
+		info.SelfOperation = false
+	}
+	return info
+}
+
+func (c *CheckerImpl) UnmarshalV2(idx index.Index, info *marshal.MarshalInfo) Checker {
+	if info == nil {
+		return nil
+	}
+	if info.SelfOperation {
+		return NewChecker(idx.GetStorageIndex().Iterator(info.Name), info.QueryValue, info.Op,
+			register.FieldMap[info.Name], info.Transfer)
+	}
+	return NewChecker(idx.GetStorageIndex().Iterator(info.Name), info.QueryValue, info.Op,
+		nil, info.Transfer)
 }
 
 func (c *CheckerImpl) Unmarshal(idx index.Index, res map[string]interface{}) Checker {

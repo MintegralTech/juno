@@ -218,6 +218,122 @@ func TestNewOrQuery2(t *testing.T) {
 	})
 }
 
+func TestOrQuery_Slice(t *testing.T) {
+	sl := datastruct.NewSlice()
+
+	sl.Add(document.DocId(1), 1)
+	sl.Add(document.DocId(3), 1)
+	sl.Add(document.DocId(6), 2)
+	sl.Add(document.DocId(10), 2)
+
+	sl1 := datastruct.NewSlice()
+
+	sl1.Add(document.DocId(1), 1)
+	sl1.Add(document.DocId(4), 1)
+	sl1.Add(document.DocId(6), 2)
+	sl1.Add(document.DocId(9), 2)
+
+	sl2 := datastruct.NewSlice()
+
+	sl2.Add(document.DocId(1), 1)
+	sl2.Add(document.DocId(4), 1)
+	sl2.Add(document.DocId(6), 2)
+	sl2.Add(document.DocId(9), 2)
+
+	Convey("or query slice check", t, func() {
+		a := NewOrQuery([]Query{
+			NewTermQuery(sl.Iterator()),
+			NewTermQuery(sl1.Iterator()),
+		}, []check.Checker{
+			check.NewChecker(sl2.Iterator(), 2, operation.EQ, nil, false),
+		})
+		testCase := []document.DocId{6, 9}
+
+		for _, expect := range testCase {
+			v, e := a.Current()
+			a.Next()
+			So(v, ShouldEqual, expect)
+			So(e, ShouldBeNil)
+		}
+		v, e := a.Current()
+		a.Next()
+		So(v, ShouldEqual, 0)
+		So(e, ShouldNotBeNil)
+	})
+
+	Convey("or query slice In check", t, func() {
+		a := NewOrQuery([]Query{
+			NewTermQuery(sl.Iterator()),
+			NewTermQuery(sl1.Iterator()),
+		}, []check.Checker{
+			check.NewInChecker(sl2.Iterator(), []int{1, 2, 3}, nil, false),
+		})
+		testCase := []document.DocId{1, 4, 6, 9}
+
+		for _, expect := range testCase {
+			v, e := a.Current()
+			a.Next()
+			So(v, ShouldEqual, expect)
+			So(e, ShouldBeNil)
+		}
+		v, e := a.Current()
+		a.Next()
+		So(v, ShouldEqual, 0)
+		So(e, ShouldNotBeNil)
+	})
+
+	Convey("or query slice or check", t, func() {
+		a := NewOrQuery([]Query{
+			NewTermQuery(sl.Iterator()),
+			NewTermQuery(sl1.Iterator()),
+		}, []check.Checker{
+			check.NewOrChecker([]check.Checker{
+				check.NewInChecker(sl2.Iterator(), []int{1, 2, 3}, nil, false),
+				check.NewChecker(sl2.Iterator(), 2, operation.EQ, nil, false),
+			}),
+			check.NewInChecker(sl2.Iterator(), []int{1, 2, 3}, nil, false),
+		})
+		testCase := []document.DocId{1, 4, 6, 9}
+
+		for _, expect := range testCase {
+			v, e := a.Current()
+			a.Next()
+			So(v, ShouldEqual, expect)
+			So(e, ShouldBeNil)
+		}
+		v, e := a.Current()
+		a.Next()
+		So(v, ShouldEqual, 0)
+		So(e, ShouldNotBeNil)
+	})
+
+	Convey("or query slice", t, func() {
+		a := NewOrQuery([]Query{
+			NewTermQuery(sl.Iterator()),
+			NewTermQuery(sl1.Iterator()),
+		}, []check.Checker{
+			check.NewOrChecker([]check.Checker{
+				check.NewInChecker(sl2.Iterator(), []int{1, 2, 3}, nil, false),
+				check.NewChecker(sl2.Iterator(), 2, operation.EQ, nil, false),
+			}),
+			check.NewInChecker(sl2.Iterator(), []int{1, 2, 3}, nil, false),
+		})
+		testCase := []document.DocId{1, 4, 6, 9}
+		a.SetDebug(1)
+		for _, expect := range testCase {
+			v, e := a.Current()
+			a.Next()
+			So(v, ShouldEqual, expect)
+			So(e, ShouldBeNil)
+		}
+		v, e := a.Current()
+		a.Next()
+		So(v, ShouldEqual, 0)
+		So(e, ShouldNotBeNil)
+		So(a.DebugInfo().String(), ShouldNotBeNil)
+	})
+}
+
 func TestNewOrQuery_Next_check(t *testing.T) {
 	sl := datastruct.NewSkipList(datastruct.DefaultMaxLevel)
 
@@ -261,7 +377,7 @@ func TestNewOrQuery_Next_check(t *testing.T) {
 		So(e, ShouldNotBeNil)
 	})
 
-	Convey("or query with In checke", t, func() {
+	Convey("or query with In check", t, func() {
 		a := NewOrQuery([]Query{
 			NewTermQuery(sl.Iterator()),
 			NewTermQuery(sl1.Iterator()),

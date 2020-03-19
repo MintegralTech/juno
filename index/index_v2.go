@@ -33,8 +33,8 @@ type IndexerV2 struct {
 
 func NewIndexV2(name string) (i *IndexerV2) {
 	i = &IndexerV2{
-		invertedIndex:   NewInvertedIndexer(),
-		storageIndex:    NewStorageIndexer(),
+		invertedIndex:   NewInvertedIndexV2(),
+		storageIndex:    NewStorageIndexerV2(),
 		campaignMapping: concurrent_map.CreateConcurrentMap(128),
 		kvType:          concurrent_map.CreateConcurrentMap(128),
 		idMap:           make([]document.DocId, MaxNumIndex),
@@ -69,12 +69,15 @@ func (i *IndexerV2) SetDebug(level int) {
 	}
 }
 
-func (i *IndexerV2) GetValueById(id document.DocId) [2]map[string][]string {
-	var res [2]map[string][]string
+func (i *IndexerV2) GetIndexDebugInfoById(id document.DocId) *IndexDebugInfo {
+	var res = &IndexDebugInfo{}
 	docId, ok := i.campaignMapping.Get(DocId(id))
 	if ok {
-		res[0] = i.GetInvertedIndex().GetValueById(docId.(document.DocId))
-		res[1] = i.GetStorageIndex().GetValueById(docId.(document.DocId))
+		if _, err := i.GetId(docId.(document.DocId)); err != nil {
+			return res
+		}
+		res.InvertIndex = i.GetInvertedIndex().GetInvertIndexDebugInfoById(docId.(document.DocId))
+		res.StorageIndex = i.GetStorageIndex().GetStorageIndexDebugInfoById(docId.(document.DocId))
 	}
 	return res
 }
@@ -228,7 +231,12 @@ func (i *IndexerV2) MergeIndex(target *IndexerV2) error {
 
 		// invert List
 		for k, v := range invertIters {
-			if id == uint64(v.Current().Key()) {
+
+			for v.Current() != nil && id > uint64(v.Current().Key()) {
+				v.Next()
+			}
+
+			if v.Current() != nil && id == uint64(v.Current().Key()) {
 				// add invert index
 				if e := i.invertedIndex.Add(k, document.DocId(i.count)); e != nil {
 					i.logger.Warnf("MergeIndex add inverted index error, docId[%d], id[%d]", docId, i.count)
@@ -239,7 +247,12 @@ func (i *IndexerV2) MergeIndex(target *IndexerV2) error {
 
 		// storage List
 		for k, v := range storageIters {
-			if id == uint64(v.Current().Key()) {
+
+			for v.Current() != nil && id > uint64(v.Current().Key()) {
+				v.Next()
+			}
+
+			if v.Current() != nil && id == uint64(v.Current().Key()) {
 				// add storage index
 				if e := i.storageIndex.Add(k, document.DocId(i.count), v.Current().Value()); e != nil {
 					i.logger.Warnf("MergeIndex add storage index error, docId[%d], id[%d]", docId, i.count)

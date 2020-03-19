@@ -7,12 +7,14 @@ import (
 	"github.com/MintegralTech/juno/document"
 	"github.com/MintegralTech/juno/helpers"
 	"github.com/MintegralTech/juno/index"
+	"github.com/MintegralTech/juno/marshal"
 )
 
 type AndQuery struct {
 	queries  []Query
 	checkers []check.Checker
 	curIdx   int
+	label    string
 	debugs   *debug.Debug
 }
 
@@ -34,6 +36,12 @@ func NewAndQuery(queries []Query, checkers []check.Checker) (aq *AndQuery) {
 	}
 	aq.next()
 	return aq
+}
+
+func (aq *AndQuery) SetLabel(label string) {
+	if aq != nil {
+		aq.label = label
+	}
 }
 
 func (aq *AndQuery) Next() {
@@ -171,6 +179,9 @@ func (aq *AndQuery) Marshal() map[string]interface{} {
 			queryInfo = append(queryInfo, m)
 		}
 	}
+	if aq.label != "" {
+		queryInfo = append(queryInfo, map[string]interface{}{"label": aq.label})
+	}
 	if len(aq.checkers) != 0 {
 		for _, v := range aq.checkers {
 			if m := v.Marshal(); m != nil {
@@ -181,6 +192,53 @@ func (aq *AndQuery) Marshal() map[string]interface{} {
 	}
 	res["and"] = queryInfo
 	return res
+}
+
+func (aq *AndQuery) MarshalV2() *marshal.MarshalInfo {
+	if aq == nil {
+		return nil
+	}
+	info := &marshal.MarshalInfo{
+		Operation: "and",
+		Nodes:     make([]*marshal.MarshalInfo, 0),
+	}
+	if aq.label != "" {
+		info.Label = aq.label
+	}
+	for _, v := range aq.queries {
+		m := v.MarshalV2()
+		if m != nil {
+			info.Nodes = append(info.Nodes, v.MarshalV2())
+		}
+	}
+
+	for _, v := range aq.checkers {
+		m := v.MarshalV2()
+		if m != nil {
+			info.Nodes = append(info.Nodes, v.MarshalV2())
+		}
+	}
+	return info
+}
+
+func (aq *AndQuery) UnmarshalV2(idx index.Index, marshalInfo *marshal.MarshalInfo) Query {
+	if marshalInfo == nil || marshalInfo.Operation != "and" {
+		return nil
+	}
+	var q []Query
+	var c []check.Checker
+	uq := &UnmarshalV2{}
+	for _, v := range marshalInfo.Nodes {
+		m := uq.UnmarshalV2(idx, v)
+		if m != nil {
+			if res, ok := m.(Query); ok {
+				q = append(q, res)
+			} else if res, ok := m.(check.Checker); ok {
+				c = append(c, res)
+			}
+		}
+	}
+	return NewAndQuery(q, c)
 }
 
 func (aq *AndQuery) Unmarshal(idx index.Index, res map[string]interface{}) Query {

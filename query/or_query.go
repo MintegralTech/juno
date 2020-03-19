@@ -7,11 +7,13 @@ import (
 	"github.com/MintegralTech/juno/document"
 	"github.com/MintegralTech/juno/helpers"
 	"github.com/MintegralTech/juno/index"
+	"github.com/MintegralTech/juno/marshal"
 )
 
 type OrQuery struct {
 	checkers []check.Checker
 	h        Heap
+	label    string
 	debugs   *debug.Debug
 	lastId   *document.DocId
 }
@@ -36,6 +38,12 @@ func NewOrQuery(queries []Query, checkers []check.Checker) (oq *OrQuery) {
 	oq.h = *h
 	oq.next()
 	return oq
+}
+
+func (oq *OrQuery) SetLabel(label string) {
+	if oq != nil {
+		oq.label = label
+	}
 }
 
 func (oq *OrQuery) Next() {
@@ -147,6 +155,9 @@ func (oq *OrQuery) Marshal() map[string]interface{} {
 	for _, v := range oq.h {
 		queryInfo = append(queryInfo, v.Marshal())
 	}
+	if oq.label != "" {
+		queryInfo = append(queryInfo, map[string]interface{}{"label": oq.label})
+	}
 	if len(oq.checkers) != 0 {
 		for _, v := range oq.checkers {
 			checkInfo = append(checkInfo, v.Marshal())
@@ -155,6 +166,52 @@ func (oq *OrQuery) Marshal() map[string]interface{} {
 	}
 	res["or"] = queryInfo
 	return res
+}
+
+func (oq *OrQuery) MarshalV2() *marshal.MarshalInfo {
+	if oq == nil {
+		return nil
+	}
+	info := &marshal.MarshalInfo{
+		Operation: "or",
+		Nodes:     make([]*marshal.MarshalInfo, 0),
+	}
+	if oq.label != "" {
+		info.Label = oq.label
+	}
+	for _, v := range oq.h {
+		m := v.MarshalV2()
+		if m != nil {
+			info.Nodes = append(info.Nodes, v.MarshalV2())
+		}
+	}
+	for _, v := range oq.checkers {
+		m := v.MarshalV2()
+		if m != nil {
+			info.Nodes = append(info.Nodes, v.MarshalV2())
+		}
+	}
+	return info
+}
+
+func (oq *OrQuery) UnmarshalV2(idx index.Index, marshalInfo *marshal.MarshalInfo) Query {
+	if marshalInfo == nil || marshalInfo.Operation != "or" {
+		return nil
+	}
+	var q []Query
+	var c []check.Checker
+	uq := &UnmarshalV2{}
+	for _, v := range marshalInfo.Nodes {
+		m := uq.UnmarshalV2(idx, v)
+		if m != nil {
+			if res, ok := m.(Query); ok {
+				q = append(q, res)
+			} else if res, ok := m.(check.Checker); ok {
+				c = append(c, res)
+			}
+		}
+	}
+	return NewOrQuery(q, c)
 }
 
 func (oq *OrQuery) Unmarshal(idx index.Index, res map[string]interface{}) Query {

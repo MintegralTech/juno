@@ -129,5 +129,8 @@ func TestSlice_Add(t *testing.T) {
 	r1 := s.Iterator()
 	fmt.Println(r1.GetGE(document.DocId(34)))
 	fmt.Println(r1.GetGE(document.DocId(24)))
+	fmt.Println(r1.GetGE(document.DocId(1000)))
+	fmt.Println(r1.GetGE(document.DocId(1000)))
+	fmt.Println(r1.GetGE(document.DocId(1001)))
 
 }

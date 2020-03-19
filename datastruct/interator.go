@@ -7,4 +7,5 @@ type Iterator interface {
 	Next()
 	Current() *Element
 	GetGE(id document.DocId) *Element
+	GetFieldName() string
 }
