@@ -11,8 +11,9 @@ import (
 )
 
 type SearcherResult struct {
-	Docs []document.DocId
-	Time time.Duration
+	Docs      []document.DocId
+	Time      time.Duration
+	ReplyInfo map[document.DocId]*marshal.MarshalInfo
 }
 
 func Search(iIndexer index.Index, query query.Query) *SearcherResult {
@@ -35,10 +36,11 @@ func Search(iIndexer index.Index, query query.Query) *SearcherResult {
 	return s
 }
 
-func Replay(idx index.Index, info *marshal.MarshalInfo, ids []document.DocId) map[document.DocId]*marshal.MarshalInfo {
+func Replay(idx index.Index, info *marshal.MarshalInfo, ids []document.DocId) *SearcherResult {
 	if info == nil {
 		return nil
 	}
+	now := time.Now()
 	uq, marshalInfo := query.UnmarshalV2{}, info
 	var res = make(map[document.DocId]*marshal.MarshalInfo, len(ids))
 	for _, id := range ids {
@@ -89,5 +91,9 @@ func Replay(idx index.Index, info *marshal.MarshalInfo, ids []document.DocId) ma
 		}
 		res[id] = marshalInfo
 	}
-	return res
+	return &SearcherResult{
+		Docs:      nil,
+		Time:      time.Now().Sub(now),
+		ReplyInfo: res,
+	}
 }

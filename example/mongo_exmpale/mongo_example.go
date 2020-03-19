@@ -227,7 +227,7 @@ func main() {
 	//var dev = []int64{4, 5}
 
 	for _, v := range ud.Campaigns {
-		d, _ := json.Marshal(tIndex.GetValueById(document.DocId(v)))
+		d, _ := json.Marshal(tIndex.GetIndexDebugInfoById(document.DocId(v)))
 		fmt.Printf("IndexInfo %d: %s\n", v, string(d))
 	}
 
@@ -259,14 +259,12 @@ func main() {
 		q.SetDebug(1)
 
 		tquery := time.Now()
-		r1 := search.NewSearcher()
-		r1.Search(tIndex, q)
+		r1 := search.Search(tIndex, q)
 		fmt.Println("query: ", time.Since(tquery))
 		fmt.Println("+****************************+")
 		fmt.Println("res: ", len(r1.Docs), r1.Time)
 		fmt.Println(r1.Docs[0])
-		fmt.Println(invertIdx.GetValueById(document.DocId(1526540701)))
-		fmt.Println(r1.QueryDebug)
+		fmt.Println(invertIdx.GetInvertIndexDebugInfoById(document.DocId(1526540701)))
 	}
 
 	c := make(chan os.Signal)

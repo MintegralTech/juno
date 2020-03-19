@@ -82,6 +82,32 @@ func Replay(index *index.Index, jsonQuery []byte, ids []document.DocId)
                         "result":true
                     }
                 }
+                 {
+                    "term":{
+                        "field":"DeviceAndIpuaRetarget",
+                        "value":"2",
+                        "result":true
+                    }
+                 }
+                 "And":{
+                             "result":true,
+                             "node":[
+                                 {
+                                     "term":{
+                                         "field":"DeviceAndIpuaRetarget",
+                                         "value":"2",
+                                         "result":true
+                                     }
+                                 }
+                                  {
+                                     "term":{
+                                         "field":"DeviceAndIpuaRetarget",
+                                         "value":"2",
+                                         "result":true
+                                     }
+                                  }
+                             ]
+                         }
             ]
         },
         "and_check":{
